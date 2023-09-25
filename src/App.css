@@ -1,0 +1,33 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+* {
+  font-family: "Poppins", sans-serif;
+}
+
+/* App.css */
+.container {
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+}
+
+.content {
+  height: 100%;
+  width: 50%; /* Default width for all screens */
+  min-width: 50%; /* Set minimum width for desktop screens */
+}
+
+.image {
+  height: 350;
+  width: 100%;
+  object-fit: cover;
+}
+
+@media only screen and (max-width: 768px) {
+  .content {
+    width: 90%; /* Set width to 50% for screens wider than 768px (desktop). */
+  }
+  .image {
+    width: 100%;
+  }
+}
