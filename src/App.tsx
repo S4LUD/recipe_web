@@ -110,6 +110,23 @@ function App() {
       .join("");
   };
 
+  if (!_id) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          height: "100vh",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <p style={{ fontSize: 25, fontWeight: "600" }}>
+          There is no recipe to view
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="container">
       <div className="content">
