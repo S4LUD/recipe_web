@@ -103,6 +103,13 @@ function App() {
     fetchRecipe();
   }, [fetchRecipe]);
 
+  const generateInitials = (name: string) => {
+    const nameWords = name.split(" ");
+    return nameWords
+      .map((word: string) => word.charAt(0).toUpperCase())
+      .join("");
+  };
+
   return (
     <div className="container">
       <div className="content">
@@ -193,11 +200,29 @@ function App() {
             marginTop: 10,
           }}
         >
-          <img
-            src={recipeData?.userId.image}
-            height={50}
-            style={{ borderRadius: 100 }}
-          />
+          {recipeData?.userId.image ? (
+            <img
+              src={recipeData?.userId.image}
+              height={50}
+              style={{ borderRadius: 100 }}
+            />
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                height: 50,
+                width: 50,
+                borderRadius: 100,
+                background: "#3CA2FA",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <p style={{ color: "white", fontSize: 18, fontWeight: "600" }}>
+                {generateInitials(recipeData?.author.name || "")}
+              </p>
+            </div>
+          )}
           <div>
             <p>{recipeData?.author.name}</p>
             <p>@{recipeData?.author.username}</p>
@@ -241,11 +266,38 @@ function App() {
             return (
               <div key={index} style={{ display: "flex", marginBottom: 15 }}>
                 <div style={{ marginRight: 10 }}>
-                  <img
-                    src={item.user_id.image}
-                    height={50}
-                    style={{ borderRadius: "50%", objectFit: "cover" }}
-                  />
+                  {item.user_id.image ? (
+                    <img
+                      src={item.user_id.image}
+                      height={50}
+                      style={{ borderRadius: "50%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        display: "flex",
+                        height: 50,
+                        width: 50,
+                        borderRadius: 100,
+                        background: "#3CA2FA",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <p
+                        style={{
+                          color: "white",
+                          fontSize: 18,
+                          fontWeight: "600",
+                        }}
+                      >
+                        {generateInitials(
+                          `${item.user_id.firstName} ${item.user_id.lastName}` ||
+                            ""
+                        )}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div
