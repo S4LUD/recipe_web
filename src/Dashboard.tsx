@@ -1,75 +1,50 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
-export default function Dashboard() {
+interface Recipe {
+  _id: string;
+  title: string;
+  author: {
+    name: string;
+  };
+}
+
+interface User {
+  _id: string;
+  totalLikes: number;
+}
+
+const Dashboard: React.FC = () => {
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [totalRecipes, setTotalRecipes] = useState<number>(0);
-  const [topLikedRecipes, setTopLikedRecipes] = useState<string[]>([]);
-  const [topRecommendedUsers, setTopRecommendedUsers] = useState([]);
-  const [isAuth, setAuth] = useState<boolean>(true);
-  const [username, setUsername] = useState<string | null>();
-  const [password, setPassword] = useState<string | null>();
+  const [topLikedRecipes, setTopLikedRecipes] = useState<Recipe[]>([]);
+  const [topRecommendedUsers, setTopRecommendedUsers] = useState<User[]>([]);
+  const [isAuth, setAuth] = useState<boolean>(false);
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
 
-  // Array of background colors for each dashboard card
   const cardColors = ["#FFA07A", "#87CEEB", "#FFD700", "#98FB98"];
 
-  // Assume you have functions to fetch data from backend
   useEffect(() => {
-    // Function to fetch total number of users
-    const fetchTotalUsers = async () => {
-      const abortController = new AbortController();
-      const signal = abortController.signal;
+    const fetchData = async () => {
+      try {
+        const [usersResponse, recipesResponse] = await Promise.all([
+          fetch("https://recipe-be-ekcs.onrender.com/api/users/count"),
+          fetch("https://recipe-be-ekcs.onrender.com/api/recipes/count"),
+        ]);
 
-      setTimeout(() => {
-        // Cancel the fetch request if component unmounts or dependency changes
-        abortController.abort();
-      }, 1000);
+        const [usersData, recipesData] = await Promise.all([
+          usersResponse.json(),
+          recipesResponse.json(),
+        ]);
 
-      const response = await fetch(
-        "https://recipe-be-ekcs.onrender.com/api/users/count",
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          signal, // Pass the AbortSignal to the fetch request
-        }
-      );
-
-      if (!signal.aborted) {
-        const result = await response.json();
-        if (result?.status) {
-          setTotalUsers(result?.count);
-        }
+        setTotalUsers(usersData?.count || 0);
+        setTotalRecipes(recipesData?.count || 0);
+      } catch (error) {
+        console.error("Error fetching data:", error);
       }
     };
 
-    // Function to fetch total number of recipes
-    const fetchTotalRecipes = async () => {
-      const abortController = new AbortController();
-      const signal = abortController.signal;
-
-      setTimeout(() => {
-        // Cancel the fetch request if component unmounts or dependency changes
-        abortController.abort();
-      }, 1000);
-
-      const response = await fetch(
-        "https://recipe-be-ekcs.onrender.com/api/recipes/count",
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          signal, // Pass the AbortSignal to the fetch request
-        }
-      );
-
-      if (!signal.aborted) {
-        const result = await response.json();
-        if (result?.status) {
-          setTotalRecipes(result?.count);
-        }
-      }
-    };
-
-    // Function to fetch top liked recipes
-    const fetchTopLikedRecipes = async () => {
+    const fetchRecipesTopLiked = async () => {
       try {
         const response = await fetch(
           "https://recipe-be-ekcs.onrender.com/api/recipes/top-liked"
@@ -84,8 +59,7 @@ export default function Dashboard() {
       }
     };
 
-    // Function to fetch top recommended users
-    const fetchTopRecommendedUsers = async () => {
+    const fetchUsersTopLiked = async () => {
       try {
         const response = await fetch(
           "https://recipe-be-ekcs.onrender.com/api/users/top-liked"
@@ -100,47 +74,36 @@ export default function Dashboard() {
       }
     };
 
-    // Fetch data when the component mounts
-    fetchTotalUsers();
-    fetchTotalRecipes();
-    fetchTopLikedRecipes();
-    fetchTopRecommendedUsers();
+    fetchData();
+    fetchRecipesTopLiked();
+    fetchUsersTopLiked();
   }, []);
 
   const handleLogin = async () => {
-    const abortController = new AbortController();
-    const signal = abortController.signal;
-
-    setTimeout(() => {
-      // Cancel the fetch request if component unmounts or dependency changes
-      abortController.abort();
-    }, 1000);
-
-    const response = await fetch(
-      "https://recipe-be-ekcs.onrender.com/api/user/login",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: username,
-          password: password,
-        }),
-        signal, // Pass the AbortSignal to the fetch request
+    try {
+      const response = await fetch(
+        "https://recipe-be-ekcs.onrender.com/api/user/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to login");
       }
-    );
-
-    if (!signal.aborted) {
       const result = await response.json();
       if (result?.username === "ADMIN") {
         setAuth(true);
       } else {
-        alert("username or password is wrong");
+        alert("Username or password is wrong");
       }
+    } catch (error) {
+      console.error("Error logging in:", error);
     }
   };
 
   const handleLogout = () => {
-    // Replace this with actual logout logic
     setAuth(false);
   };
 
@@ -148,15 +111,12 @@ export default function Dashboard() {
     <div>
       {isAuth ? (
         <>
-          {/* Header */}
           <header className="dashboard-header">
             <div className="dashboard-title">Dashboard</div>
             <button className="logout-button" onClick={handleLogout}>
               Logout
             </button>
           </header>
-
-          {/* Dashboard Content */}
           <div className="dashboard-container">
             <div className="dashboard-grid">
               <div
@@ -180,10 +140,9 @@ export default function Dashboard() {
                 <h2>Top Liked Recipes</h2>
                 <ul>
                   {topLikedRecipes.map((recipe) => (
-                    <li key={recipe?._id}>
-                      <h3>{recipe?.title}</h3>
-                      <p>Author: {recipe?.author.name}</p>
-                      {/* Add more details as needed */}
+                    <li key={recipe._id}>
+                      <h3>{recipe.title}</h3>
+                      <p>Author: {recipe.author.name}</p>
                     </li>
                   ))}
                 </ul>
@@ -195,9 +154,9 @@ export default function Dashboard() {
                 <h2>Top Recommended Users</h2>
                 <ul>
                   {topRecommendedUsers.map((user) => (
-                    <li key={user?._id}>
-                      <p>{user?._id}</p>
-                      <p>Total Likes: {user?.totalLikes}</p>
+                    <li key={user._id}>
+                      <p>{user._id}</p>
+                      <p>Total Likes: {user.totalLikes}</p>
                     </li>
                   ))}
                 </ul>
@@ -211,6 +170,7 @@ export default function Dashboard() {
           <div className="form-group">
             <label>Username:</label>
             <input
+              value={username}
               onChange={(event) => setUsername(event.target.value)}
               type="text"
             />
@@ -218,15 +178,18 @@ export default function Dashboard() {
           <div className="form-group">
             <label>Password:</label>
             <input
+              value={password}
               onChange={(event) => setPassword(event.target.value)}
               type="password"
             />
           </div>
-          <button type="submit" onClick={() => handleLogin()}>
+          <button type="submit" onClick={handleLogin}>
             Login
           </button>
         </div>
       )}
     </div>
   );
-}
+};
+
+export default Dashboard;
