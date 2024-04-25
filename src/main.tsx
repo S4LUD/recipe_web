@@ -14,7 +14,7 @@ if (rootElement) {
       element: <App />,
     },
     {
-      path: "dashboard",
+      path: "/dashboard",
       element: <Dashboard />,
     },
   ]);
